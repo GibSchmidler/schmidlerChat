@@ -77,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
+        // Set status to offline before logging out
+      await apiRequest("POST", "/api/users/status", { status: "offline" });
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
