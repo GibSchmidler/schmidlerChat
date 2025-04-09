@@ -33,106 +33,103 @@ export function useWebSocket<T = any>(
     reconnectAttempts = 5,
   } = options;
 
+  // Create and connect to WebSocket
   const connect = useCallback(() => {
     // Don't try to connect if URL is null
     if (!url) {
       setIsConnected(false);
-      setConnectionError("WebSocket URL is null - user may not be authenticated");
-      console.log("Cannot connect WebSocket: URL is null");
-      return;
+      setConnectionError("No WebSocket URL provided");
+      return () => {};
     }
     
     // Don't reconnect if there's already an active connection
     if (webSocketRef.current?.readyState === WebSocket.OPEN) {
-      console.log("WebSocket already connected, not reconnecting");
-      return;
+      return () => {};
     }
     
     // Close any existing connections before creating a new one
     if (webSocketRef.current) {
-      console.log("Closing existing WebSocket connection before reconnecting");
       webSocketRef.current.close();
     }
 
     // Clear any previous connection errors
     setConnectionError(null);
     
-    try {
-      console.log("Attempting WebSocket connection to:", url);
-      const ws = new WebSocket(url);
-
-      ws.onopen = (event) => {
-        console.log("WebSocket connection successful!");
-        setIsConnected(true);
-        setReconnectCount(0);
-        if (onOpen) onOpen(event);
-      };
-
-      ws.onclose = (event) => {
-        console.log("WebSocket connection closed. Code:", event.code, "Reason:", event.reason);
-        setIsConnected(false);
-        if (onClose) onClose(event);
-
-        // Try to reconnect if we haven't exceeded the reconnect attempts
+    console.log("Connecting to WebSocket at:", url);
+    
+    // Create new WebSocket connection
+    const ws = new WebSocket(url);
+    webSocketRef.current = ws;
+    
+    // Configure event handlers
+    ws.onopen = (event) => {
+      console.log("WebSocket connection opened");
+      setIsConnected(true);
+      setReconnectCount(0);
+      
+      if (onOpen) onOpen(event);
+    };
+    
+    ws.onclose = (event) => {
+      console.log("WebSocket connection closed with code:", event.code, "reason:", event.reason);
+      setIsConnected(false);
+      
+      if (onClose) onClose(event);
+      
+      // Only attempt to reconnect if this was not a normal closure
+      if (event.code !== 1000 && event.code !== 1001) {
         if (reconnectCount < reconnectAttempts) {
           console.log(`Attempting to reconnect (${reconnectCount + 1}/${reconnectAttempts})...`);
-          reconnectTimeoutRef.current = window.setTimeout(() => {
+          const timeoutId = window.setTimeout(() => {
             setReconnectCount((prevCount) => prevCount + 1);
-            connect();
           }, reconnectInterval);
+          reconnectTimeoutRef.current = timeoutId;
         } else {
           console.log("Maximum reconnection attempts reached");
-          setConnectionError("Maximum reconnection attempts reached. Please refresh the page.");
+          setConnectionError("Failed to connect after maximum attempts. Please refresh the page.");
         }
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const parsedData = JSON.parse(event.data);
-          console.log("Received WebSocket message:", parsedData.type);
-          setLastMessage(parsedData);
-        } catch (error) {
-          console.error("WebSocket message parsing error:", error);
-        }
-        
-        if (onMessage) onMessage(event);
-      };
-
-      ws.onerror = (event) => {
-        console.error("WebSocket error:", event);
-        setConnectionError("WebSocket error occurred. Check console for details.");
-        if (onError) onError(event);
-      };
-
-      webSocketRef.current = ws;
-    } catch (error) {
-      console.error("Error creating WebSocket connection:", error);
-      setConnectionError(`Failed to create WebSocket connection: ${error}`);
-      if (onError) onError(new Event('error'));
-    }
-
-    return () => {
-      if (webSocketRef.current) {
-        console.log("Closing WebSocket connection from cleanup function");
-        webSocketRef.current.close();
       }
+    };
+    
+    ws.onmessage = (event) => {
+      try {
+        const parsedData = JSON.parse(event.data);
+        console.log("Received WebSocket message:", parsedData);
+        setLastMessage(parsedData);
+      } catch (error) {
+        console.error("Failed to parse WebSocket message:", error);
+      }
+      
+      if (onMessage) onMessage(event);
+    };
+    
+    ws.onerror = (event) => {
+      console.error("WebSocket error:", event);
+      setConnectionError("Connection error occurred");
+      
+      if (onError) onError(event);
+    };
+    
+    // Return cleanup function
+    return () => {
+      console.log("Cleaning up WebSocket connection");
+      ws.close();
     };
   }, [url, onOpen, onClose, onMessage, onError, reconnectCount, reconnectAttempts, reconnectInterval]);
 
+  // Connect when URL changes or reconnect count increases
   useEffect(() => {
-    connect();
-
+    const cleanup = connect();
+    
     return () => {
+      cleanup();
       if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-      
-      if (webSocketRef.current) {
-        webSocketRef.current.close();
+        window.clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [connect]);
+  }, [connect, reconnectCount]);
 
+  // Send a message over the WebSocket
   const sendMessage = useCallback((data: any) => {
     if (!webSocketRef.current) {
       console.error("Cannot send message: WebSocket not initialized");
@@ -140,16 +137,16 @@ export function useWebSocket<T = any>(
     }
     
     if (webSocketRef.current.readyState !== WebSocket.OPEN) {
-      console.error("Cannot send message: WebSocket not open. Current state:", webSocketRef.current.readyState);
+      console.error("Cannot send message: WebSocket not open", webSocketRef.current.readyState);
       return false;
     }
     
     try {
-      console.log("Sending WebSocket message:", data);
+      console.log("Sending message:", data);
       webSocketRef.current.send(JSON.stringify(data));
       return true;
     } catch (error) {
-      console.error("Error sending WebSocket message:", error);
+      console.error("Error sending message:", error);
       return false;
     }
   }, []);

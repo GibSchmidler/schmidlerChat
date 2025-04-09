@@ -78,9 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Create WebSocket server
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  // Broadcast helper function
-  function broadcast(message: ChatMessage | UserStatusMessage) {
+
+  function broadcast(message: any) {
     clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(message));
@@ -88,141 +87,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
   
-  // Broadcast user status
-  async function broadcastUserStatus() {
-    const users = await storage.getAllUsers();
-    const userStatuses = users.map(user => ({
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      status: clients.has(user.id) ? "online" as const : "offline" as const
+  wss.on("connection", (ws, req) => {
+    console.log("WebSocket connection received");
+    
+    // Extract user ID from query parameters
+    const url = new URL(req.url || '', `http://${req.headers.host}`);
+    const userIdStr = url.searchParams.get('userId');
+    const userId = userIdStr ? parseInt(userIdStr) : 0;
+    
+    if (!userId) {
+      console.log("No user ID provided");
+      return;
+    }
+    
+    // Store the connection
+    clients.set(userId, ws);
+    console.log(`Client connection stored for user ${userId}`);
+    
+    // Handle messages
+    ws.on("message", async (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        console.log("Received message:", message);
+        
+        if (message.content) {
+          // Store in database
+          const savedMessage = await storage.createMessage({
+            content: message.content,
+            userId
+          });
+          
+          // Get user info
+          const user = await storage.getUser(userId);
+          
+          if (user) {
+            // Broadcast to all clients
+            broadcast({
+              type: "message",
+              id: Date.now(),
+              content: savedMessage.content,
+              userId: savedMessage.userId,
+              username: user.username,
+              name: user.name,
+              timestamp: savedMessage.timestamp
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error processing message:", err);
+      }
+    });
+    
+    // Handle disconnection
+    ws.on("close", () => {
+      console.log(`WebSocket connection closed for user ${userId}`);
+      clients.delete(userId);
+      
+      // Notify other clients
+      broadcast({
+        type: "user_status",
+        users: Array.from(clients.keys()).map(id => ({
+          id,
+          status: "online"
+        }))
+      });
+    });
+    
+    // Send confirmation message
+    ws.send(JSON.stringify({
+      type: "connection_success",
+      message: "Connected to chat server"
     }));
     
+    // Broadcast user status update
     broadcast({
       type: "user_status",
-      users: userStatuses
+      users: Array.from(clients.keys()).map(id => ({
+        id,
+        status: "online"
+      }))
     });
-  }
-
-  // Handle WebSocket connections
-  wss.on("connection", async (ws, req) => {
-    try {
-      // Get the userId from the query parameter
-      const url = new URL(req.url || '', `http://${req.headers.host}`);
-      const userIdStr = url.searchParams.get('userId');
-      
-      if (!userIdStr) {
-        console.log("WebSocket connection rejected: No user ID provided");
-        ws.close(1008, "Unauthorized - User ID required");
-        return;
-      }
-      
-      const userId = parseInt(userIdStr);
-      console.log(`WebSocket connection attempt with userId: ${userId}`);
-      
-      if (isNaN(userId) || userId <= 0) {
-        console.log(`WebSocket connection rejected: Invalid user ID: ${userIdStr}`);
-        ws.close(1008, "Invalid user ID");
-        return;
-      }
-      
-      // Get all users from storage first (for debugging)
-      const allUsers = await storage.getAllUsers();
-      console.log(`Available users: ${JSON.stringify(allUsers.map(u => ({ id: u.id, username: u.username })))}`);
-      
-      // Get user from storage
-      let user = await storage.getUser(userId);
-      
-      if (!user) {
-        // Try to find the user in the list
-        const matchingUser = allUsers.find(u => u.id === userId);
-        
-        if (matchingUser) {
-          console.log(`Found user ${matchingUser.username} in all users collection, using that`);
-          user = matchingUser;
-        } else {
-          console.log(`WebSocket connection rejected: User ID ${userId} not found in database`);
-          ws.close(1008, "User not found");
-          return;
-        }
-      }
-      
-      console.log(`WebSocket connection established for user: ${user.username} (${userId})`);
-      
-      // Store client connection
-      clients.set(userId, ws);
-      
-      // Broadcast user status update
-      await broadcastUserStatus();
-      
-      // Handle incoming messages
-      ws.on("message", async (messageData) => {
-        try {
-          console.log(`Received message from ${user.username}:`, messageData.toString());
-          const data = JSON.parse(messageData.toString());
-          
-          // Validate message content
-          const result = insertMessageSchema.safeParse({
-            content: data.content,
-            userId: userId
-          });
-          
-          if (!result.success) {
-            console.log("Invalid message format:", result.error);
-            ws.send(JSON.stringify({ 
-              type: "error", 
-              error: "Invalid message format" 
-            }));
-            return;
-          }
-          
-          // Store the message
-          const message = await storage.createMessage({
-            content: data.content,
-            userId: userId
-          });
-          
-          console.log(`Stored message from ${user.username}: ${message.content}`);
-          
-          // Broadcast to all clients
-          const broadcastMessage: ChatMessage = {
-            type: "message",
-            content: message.content,
-            userId: message.userId,
-            username: user.username,
-            name: user.name,
-            timestamp: message.timestamp
-          };
-          
-          console.log("Broadcasting message to all clients:", broadcastMessage);
-          broadcast(broadcastMessage);
-          
-        } catch (error) {
-          console.error("Error processing message:", error);
-          ws.send(JSON.stringify({ 
-            type: "error", 
-            error: "Failed to process message" 
-          }));
-        }
-      });
-      
-      // Handle disconnection
-      ws.on("close", async (code, reason) => {
-        console.log(`WebSocket connection closed for ${user.username}. Code: ${code}, Reason: ${reason}`);
-        clients.delete(userId);
-        await broadcastUserStatus();
-      });
-      
-      // Send a welcome message to confirm connection
-      ws.send(JSON.stringify({
-        type: "connection_success",
-        message: `Welcome, ${user.name}! You are now connected to the chat.`
-      }));
-      
-    } catch (error) {
-      console.error("Error handling WebSocket connection:", error);
-      ws.close(1011, "Server error");
-    }
   });
 
   return httpServer;
