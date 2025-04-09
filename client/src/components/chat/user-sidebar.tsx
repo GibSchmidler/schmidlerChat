@@ -74,7 +74,7 @@ export default function UserSidebar({ onlineUsers = [], currentUserId }: UserSid
   }
 
   return (
-    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:block">
+    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:block mt-[60px]">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <h2 className="font-semibold text-gray-800 dark:text-gray-200">Active Users</h2>
       </div>
