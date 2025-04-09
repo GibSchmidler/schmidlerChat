@@ -150,8 +150,8 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Chat header - visible on all screens */}
+    <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900 h-full">
+      {/* Chat header - fixed at top */}
       <div className="bg-white dark:bg-gray-800 p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <div className="flex items-center">
           <h2 className="font-semibold text-gray-800 dark:text-gray-200 mr-2">Chat Room</h2>
@@ -167,12 +167,14 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
         </div>
       </div>
       
-      {/* Chat messages container */}
-      <div className="flex-1 overflow-y-auto p-4 pt-6 pb-6 space-y-4 chat-container">
-        <div className="py-4"></div> {/* Extra spacing at the top */}
-        {renderMessages()}
-        <div className="py-4"></div> {/* Extra spacing at the bottom */}
-        <div ref={messagesEndRef} />
+      {/* Scrollable messages container */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto p-4 space-y-4">
+          <div className="py-4"></div> {/* Extra spacing at the top */}
+          {renderMessages()}
+          <div className="py-4"></div> {/* Extra spacing at the bottom */}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
     </div>
   );
