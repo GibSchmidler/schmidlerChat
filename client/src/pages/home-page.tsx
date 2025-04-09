@@ -82,10 +82,8 @@ export default function HomePage() {
     }
   };
 
-  // Extract online user IDs
-  const onlineUserIds = onlineUsers
-    .filter(user => user.status === "online")
-    .map(user => user.id);
+  // Extract online user IDs from the online users response
+  const onlineUserIds = onlineUsers.map(user => user.id);
 
   return (
     <div className="h-screen flex flex-col">
