@@ -173,10 +173,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const users = await storage.getAllUsers();
-      const usersWithStatus = users.map(user => ({
-        ...user,
-        status: userStatuses.get(user.id) || 'offline'
-      }));
+      const usersWithStatus = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return {
+          ...userWithoutPassword,
+          status: userStatuses.get(user.id) || 'offline'
+        };
+      });
       res.json(usersWithStatus);
     } catch (error) {
       next(error);
