@@ -120,5 +120,14 @@
     "recipientUsername": null,
     "id": 14,
     "timestamp": "2025-04-09T20:37:05.571Z"
+  },
+  {
+    "content": "Hi Gib!",
+    "userId": 3,
+    "isPrivate": true,
+    "recipientId": 1,
+    "recipientUsername": "gjschmidler",
+    "id": 15,
+    "timestamp": "2025-04-09T20:41:54.557Z"
   }
 ]
