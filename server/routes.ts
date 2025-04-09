@@ -55,18 +55,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let recipientId = null;
       let content = req.body.content;
       
+      // Make username comparison case-insensitive
       // Check for @username pattern at the beginning of the message
       const atMentionRegex = /^@(\w+)\s(.+)$/;
       const mentionMatch = content.match(atMentionRegex);
       
       if (mentionMatch) {
         const mentionedUsername = mentionMatch[1];
-        const actualMessage = mentionMatch[2];
-        
-        // Find the mentioned user
-        const mentionedUser = await storage.getUserByUsername(mentionedUsername);
+        // Case-insensitive username lookup
+        const mentionedUser = await storage.getUserByUsername(
+          mentionedUsername.toLowerCase()
+        ) || await storage.getUserByUsername(mentionedUsername);
         
         if (mentionedUser) {
+          console.log(`Private message detected to ${mentionedUser.username}`);
           isPrivate = true;
           recipientId = mentionedUser.id;
           // Keep the @username in the content for UI display

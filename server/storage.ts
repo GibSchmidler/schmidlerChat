@@ -71,10 +71,13 @@ export class FileStorage implements IStorage {
         const messageData = fs.readFileSync(MESSAGES_FILE, 'utf8');
         const rawMessages = JSON.parse(messageData);
         
-        // Convert timestamp strings back to Date objects
+        // Convert timestamp strings back to Date objects and ensure private messaging fields are set
         this.messages = rawMessages.map((msg: any) => ({
           ...msg,
-          timestamp: new Date(msg.timestamp)
+          timestamp: new Date(msg.timestamp),
+          // Make sure these fields exist in older messages
+          isPrivate: msg.isPrivate ?? false,
+          recipientId: msg.recipientId ?? null
         }));
         
         // Find the highest message ID to set nextMessageId correctly
@@ -111,7 +114,10 @@ export class FileStorage implements IStorage {
   }
   
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
+    // Case-insensitive username comparison
+    return this.users.find(user => 
+      user.username.toLowerCase() === username.toLowerCase()
+    );
   }
   
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -152,8 +158,10 @@ export class FileStorage implements IStorage {
   async deleteUserByUsername(username: string): Promise<boolean> {
     const initialLength = this.users.length;
     
-    // Filter out the user with the matching username
-    this.users = this.users.filter(user => user.username !== username);
+    // Filter out the user with the matching username (case-insensitive)
+    this.users = this.users.filter(user => 
+      user.username.toLowerCase() !== username.toLowerCase()
+    );
     
     // If a user was removed, save the updated users list
     if (this.users.length < initialLength) {

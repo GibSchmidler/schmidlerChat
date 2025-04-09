@@ -117,9 +117,14 @@ export default function UserSidebar({ onlineUsers = [], currentUserId }: UserSid
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {user.name} {user.id === currentUserId ? ' (You)' : ''}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {user.status === "online" ? "Online" : "Offline"}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                        @{user.username}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                        {user.status === "online" ? "Online" : "Offline"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </li>
