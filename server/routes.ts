@@ -2,8 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertMessageSchema } from "@shared/schema";
+import { insertMessageSchema, updateProfileSchema } from "@shared/schema";
 import { z } from "zod";
+import { upload, handleAvatarUpload, serveStaticUploads } from "./upload";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
@@ -83,6 +84,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Note: /api/users endpoint is already defined in auth.ts
+  
+  // Update user profile
+  app.patch("/api/user/profile", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.sendStatus(401);
+      }
+      
+      // Validate request body
+      const result = updateProfileSchema.safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({
+          error: "Invalid profile data",
+          details: result.error.errors
+        });
+      }
+      
+      // Update user profile
+      const updatedUser = await storage.updateUserProfile(req.user!.id, req.body);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Update session
+      req.login(updatedUser, (err) => {
+        if (err) return next(err);
+        res.json(updatedUser);
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Handle avatar upload
+  app.post("/api/user/avatar", upload.single("avatar"), handleAvatarUpload);
+  
+  // Serve static uploads
+  app.get("/uploads/:filename", serveStaticUploads);
+  
+  // Get all users (for the sidebar)
+  app.get("/api/users", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.sendStatus(401);
+      }
+      
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   // Create HTTP server
   const httpServer = createServer(app);

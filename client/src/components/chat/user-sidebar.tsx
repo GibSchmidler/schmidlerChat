@@ -1,13 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "@shared/schema";
 
 type UserStatus = "online" | "offline";
 
-interface UserWithStatus {
-  id: number;
-  username: string;
-  name: string;
+interface UserWithStatus extends User {
   status: UserStatus;
 }
 
@@ -102,9 +100,12 @@ export default function UserSidebar({ onlineUsers = [], currentUserId }: UserSid
               >
                 <div className="flex items-center space-x-3 p-3">
                   <div className="relative">
-                    <div className={`w-10 h-10 rounded-full ${bgColor} text-white flex items-center justify-center`}>
-                      <span>{initials}</span>
-                    </div>
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                      <AvatarFallback style={{ backgroundColor: user.avatarColor || '#6366f1' }}>
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className={`absolute bottom-0 right-0 w-3 h-3 ${
                       user.status === "online" 
                         ? "bg-green-500" 

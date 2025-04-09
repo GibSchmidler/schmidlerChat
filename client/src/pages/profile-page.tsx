@@ -2,11 +2,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -44,6 +48,9 @@ const ProfileFormSchema = z.object({
 
 export default function ProfilePage() {
   const { user, isLoading, updateProfileMutation } = useAuth();
+  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Define form
   const form = useForm<z.infer<typeof ProfileFormSchema>>({
@@ -56,6 +63,69 @@ export default function ProfilePage() {
       theme: "light",
     },
   });
+  
+  // Handle avatar upload
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPEG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
+      // Send request to server
+      const response = await fetch('/api/user/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      const data = await response.json();
+      
+      // Update form with new avatar URL
+      form.setValue('avatarUrl', data.url);
+      
+      toast({
+        title: "Avatar uploaded",
+        description: "Your profile picture has been uploaded successfully",
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Load user data into form when available
   useEffect(() => {
@@ -138,17 +208,66 @@ export default function ProfilePage() {
                 name="avatarUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Avatar Image URL</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="https://example.com/your-avatar.jpg"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Enter a URL for your profile picture (optional)
-                    </FormDescription>
+                    <FormLabel>Profile Picture</FormLabel>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="w-16 h-16">
+                          <AvatarImage src={field.value || undefined} />
+                          <AvatarFallback style={{ backgroundColor: form.getValues("avatarColor") }}>
+                            {user?.name?.charAt(0).toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex gap-2">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading}
+                          >
+                            {isUploading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              "Upload Image"
+                            )}
+                          </Button>
+                          
+                          {field.value && (
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => form.setValue('avatarUrl', '')}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                        
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleAvatarUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                      </div>
+                      
+                      <div className="flex-1">
+                        <FormControl>
+                          <Input 
+                            placeholder="https://example.com/your-avatar.jpg"
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Or enter a URL for your profile picture
+                        </FormDescription>
+                      </div>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
