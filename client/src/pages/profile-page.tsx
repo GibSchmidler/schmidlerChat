@@ -42,7 +42,24 @@ const ProfileFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   bio: z.string().optional(),
   avatarColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color"),
-  avatarUrl: z.string().url("Must be a valid URL").optional().nullable(),
+  avatarUrl: z.string()
+    .refine(
+      (val) => {
+        // Allow empty values
+        if (!val) return true;
+        // Allow relative URLs starting with /uploads/
+        if (val.startsWith('/uploads/')) return true;
+        // Otherwise check for full URL
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          return false;
+        }
+      }, 
+      { message: "Must be a valid URL or an uploaded image path" }
+    )
+    .optional().nullable(),
   theme: z.enum(["light", "dark"]),
 });
 
