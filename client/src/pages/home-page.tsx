@@ -83,8 +83,10 @@ export default function HomePage() {
     }
   };
 
-  // Extract online user IDs from the online users response
-  const onlineUserIds = onlineUsers.map(user => user.id);
+  // Extract online user IDs from users with "online" status
+  const onlineUserIds = onlineUsers
+    .filter(user => user.status === "online")
+    .map(user => user.id);
 
   // Update online status when visibility changes
   useEffect(() => {
