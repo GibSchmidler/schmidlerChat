@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -8,10 +9,11 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Home, User } from "lucide-react";
 
 export default function Header() {
   const { user, logoutMutation } = useAuth();
+  const [, setLocation] = useLocation();
   
   if (!user) return null;
   
@@ -29,11 +31,24 @@ export default function Header() {
           <h1 className="text-xl font-bold text-primary">Chat App</h1>
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex items-center gap-2"
+            onClick={() => setLocation('/')}
+          >
+            <Home className="h-4 w-4" />
+            <span className="hidden sm:inline">Home</span>
+          </Button>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 focus:outline-none p-1 h-auto">
-                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
+                <div 
+                  className="w-8 h-8 rounded-full text-white flex items-center justify-center"
+                  style={{ backgroundColor: user.avatarColor || '#6366f1' }}
+                >
                   <span>{initials}</span>
                 </div>
                 <span className="font-medium text-gray-700 dark:text-gray-200">
@@ -47,15 +62,10 @@ export default function Header() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem 
                 className="text-gray-700 dark:text-gray-200 cursor-pointer"
-                disabled
+                onClick={() => setLocation('/profile')}
               >
+                <User className="h-4 w-4 mr-2" />
                 Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="text-gray-700 dark:text-gray-200 cursor-pointer"
-                disabled
-              >
-                Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 

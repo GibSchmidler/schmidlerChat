@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Message, type InsertMessage } from "@shared/schema";
+import { type User, type InsertUser, type Message, type InsertMessage, type UpdateProfile } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import fs from "fs";
@@ -21,6 +21,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfile(userId: number, profileData: UpdateProfile): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   
   // Message operations
@@ -115,7 +116,10 @@ export class FileStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const newUser: User = {
       ...insertUser,
-      id: this.nextUserId++
+      id: this.nextUserId++,
+      bio: "",
+      avatarColor: "#6366f1", // Default indigo color
+      theme: "light"
     };
     this.users.push(newUser);
     
@@ -123,6 +127,24 @@ export class FileStorage implements IStorage {
     this.saveUsers();
     
     return newUser;
+  }
+  
+  async updateUserProfile(userId: number, profileData: UpdateProfile): Promise<User | undefined> {
+    const userIndex = this.users.findIndex(user => user.id === userId);
+    if (userIndex === -1) {
+      return undefined;
+    }
+    
+    // Update user with new profile data
+    this.users[userIndex] = {
+      ...this.users[userIndex],
+      ...profileData
+    };
+    
+    // Save users to file
+    this.saveUsers();
+    
+    return this.users[userIndex];
   }
   
   async getAllUsers(): Promise<User[]> {

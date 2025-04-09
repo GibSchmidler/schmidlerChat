@@ -5,7 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User as SelectUser, updateProfileSchema } from "@shared/schema";
 
 declare global {
   namespace Express {
@@ -123,6 +123,37 @@ export function setupAuth(app: Express) {
       });
       
       res.json(usersWithStatusAndNoPasswords);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Update user profile
+  app.patch("/api/user/profile", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.sendStatus(401);
+      }
+      
+      // Validate request body
+      const result = updateProfileSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({
+          error: "Invalid profile data",
+          details: result.error.errors
+        });
+      }
+      
+      // Update profile
+      const updatedUser = await storage.updateUserProfile(req.user!.id, result.data);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
     } catch (error) {
       next(error);
     }
