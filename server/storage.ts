@@ -27,7 +27,7 @@ export interface IStorage {
   
   // Message operations
   createMessage(message: InsertMessage): Promise<Message>;
-  getMessages(limit?: number): Promise<Message[]>;
+  getMessages(limit?: number, currentUserId?: number): Promise<Message[]>;
   
   // Session store
   sessionStore: session.Store;
@@ -173,7 +173,9 @@ export class FileStorage implements IStorage {
     const newMessage: Message = {
       ...insertMessage,
       id: this.nextMessageId++,
-      timestamp: new Date()
+      timestamp: new Date(),
+      isPrivate: insertMessage.isPrivate || false,
+      recipientId: insertMessage.recipientId || null
     };
     this.messages.push(newMessage);
     
@@ -183,17 +185,29 @@ export class FileStorage implements IStorage {
     return newMessage;
   }
   
-  async getMessages(limit?: number): Promise<Message[]> {
+  async getMessages(limit?: number, currentUserId?: number): Promise<Message[]> {
     // Sort messages by timestamp in ascending order (oldest first)
     const sortedMessages = [...this.messages].sort(
       (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
     );
     
+    // Filter messages based on visibility permissions
+    const visibleMessages = currentUserId 
+      ? sortedMessages.filter(msg => 
+          // Include if message is not private
+          !msg.isPrivate || 
+          // Include if user is the sender
+          msg.userId === currentUserId ||
+          // Include if user is the recipient
+          msg.recipientId === currentUserId
+        )
+      : sortedMessages.filter(msg => !msg.isPrivate); // Only public messages for non-logged in users
+    
     if (limit) {
-      return sortedMessages.slice(-limit); // Get the most recent messages if limit is specified
+      return visibleMessages.slice(-limit); // Get the most recent messages if limit is specified
     }
     
-    return sortedMessages;
+    return visibleMessages;
   }
 }
 

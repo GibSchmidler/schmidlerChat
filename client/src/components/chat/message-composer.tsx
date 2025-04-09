@@ -69,14 +69,21 @@ export default function MessageComposer({
 
   return (
     <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3">
+      {/* Private messaging tip */}
+      <div className="mb-2 flex items-center text-xs text-gray-500 dark:text-gray-400 md:hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <span>Type @username to send a private message</span>
+      </div>
       <form onSubmit={handleSubmit} className="flex items-end space-x-2">
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="w-full px-3 py-2 resize-none min-h-[40px] max-h-[120px]"
+            placeholder={message.startsWith('@') ? "Private message..." : "Type a message or @username for private..."}
+            className={`w-full px-3 py-2 resize-none min-h-[40px] max-h-[120px] ${message.startsWith('@') ? 'bg-purple-50 dark:bg-purple-900/20' : ''}`}
             disabled={isSubmitting || !currentUser}
             onKeyDown={(e) => {
               // Submit on Enter (without shift for new line)

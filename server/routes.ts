@@ -20,8 +20,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse limit parameter, default to 50 if not provided
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
       
-      // Get messages from storage
-      const messages = await storage.getMessages(limit);
+      // Get messages from storage, filtered for current user
+      const messages = await storage.getMessages(limit, req.user!.id);
       
       // Enrich messages with user data
       const enrichedMessages = await Promise.all(
@@ -49,11 +49,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.isAuthenticated()) {
         return res.sendStatus(401);
       }
+
+      // Check if message contains @username mentions for private messaging
+      let isPrivate = false;
+      let recipientId = null;
+      let content = req.body.content;
+      
+      // Check for @username pattern at the beginning of the message
+      const atMentionRegex = /^@(\w+)\s(.+)$/;
+      const mentionMatch = content.match(atMentionRegex);
+      
+      if (mentionMatch) {
+        const mentionedUsername = mentionMatch[1];
+        const actualMessage = mentionMatch[2];
+        
+        // Find the mentioned user
+        const mentionedUser = await storage.getUserByUsername(mentionedUsername);
+        
+        if (mentionedUser) {
+          isPrivate = true;
+          recipientId = mentionedUser.id;
+          // Keep the @username in the content for UI display
+        }
+      }
       
       // Validate request body
       const result = insertMessageSchema.safeParse({
-        content: req.body.content,
-        userId: req.user!.id
+        content: content,
+        userId: req.user!.id,
+        isPrivate: isPrivate,
+        recipientId: recipientId
       });
       
       if (!result.success) {
@@ -65,8 +90,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create message in storage
       const message = await storage.createMessage({
-        content: req.body.content,
-        userId: req.user!.id
+        content: content,
+        userId: req.user!.id,
+        isPrivate: isPrivate,
+        recipientId: recipientId
       });
       
       // Return message with user info

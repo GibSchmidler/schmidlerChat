@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -18,6 +18,8 @@ export const messages = pgTable("messages", {
   content: text("content").notNull(),
   userId: integer("user_id").notNull(),
   timestamp: timestamp("timestamp").notNull().defaultNow(),
+  isPrivate: boolean("is_private").default(false).notNull(),
+  recipientId: integer("recipient_id"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -26,9 +28,14 @@ export const insertUserSchema = createInsertSchema(users).pick({
   name: true,
 });
 
-export const insertMessageSchema = createInsertSchema(messages).pick({
+export const insertMessageSchema = createInsertSchema(messages, {
+  isPrivate: () => z.boolean().optional().default(false),
+  recipientId: () => z.number().optional().nullable(),
+}).pick({
   content: true,
   userId: true,
+  isPrivate: true,
+  recipientId: true,
 });
 
 export const loginSchema = z.object({

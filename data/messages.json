@@ -4,17 +4,5 @@
     "userId": 1,
     "id": 1,
     "timestamp": "2025-04-09T13:24:18.684Z"
-  },
-  {
-    "content": "Hello everybody!",
-    "userId": 1,
-    "id": 2,
-    "timestamp": "2025-04-09T13:37:47.849Z"
-  },
-  {
-    "content": "Hello!",
-    "userId": 2,
-    "id": 3,
-    "timestamp": "2025-04-09T13:42:05.720Z"
   }
 ]

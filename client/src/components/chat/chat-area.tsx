@@ -102,7 +102,15 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
                   {formattedTime}
                 </span>
               </div>
-              <div className="message-bubble sent mt-1 py-2 px-3 bg-primary text-white rounded-[1rem_1rem_0_1rem]">
+              <div className={`message-bubble sent mt-1 py-2 px-3 rounded-[1rem_1rem_0_1rem] ${message.isPrivate ? 'bg-purple-600' : 'bg-primary'} text-white`}>
+                {message.isPrivate && (
+                  <div className="flex items-center mb-1 text-sm text-purple-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>Private message</span>
+                  </div>
+                )}
                 <p>{message.content}</p>
               </div>
             </div>
@@ -122,7 +130,15 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
                   {formattedTime}
                 </span>
               </div>
-              <div className="message-bubble received mt-1 py-2 px-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-[1rem_1rem_1rem_0]">
+              <div className={`message-bubble received mt-1 py-2 px-3 rounded-[1rem_1rem_1rem_0] ${message.isPrivate ? 'bg-purple-100 dark:bg-purple-900' : 'bg-gray-100 dark:bg-gray-700'} ${message.isPrivate ? 'text-purple-900 dark:text-purple-100' : 'text-gray-900 dark:text-gray-100'}`}>
+                {message.isPrivate && (
+                  <div className="flex items-center mb-1 text-sm text-purple-600 dark:text-purple-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>Private message</span>
+                  </div>
+                )}
                 <p>{message.content}</p>
               </div>
             </div>
@@ -134,15 +150,20 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Mobile header */}
-      <div className="md:hidden bg-white dark:bg-gray-800 p-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <button className="p-1 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <h2 className="font-semibold text-gray-800 dark:text-gray-200">Group Chat</h2>
-        <div className="w-6"></div> {/* Spacer for alignment */}
+      {/* Chat header - visible on all screens */}
+      <div className="bg-white dark:bg-gray-800 p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <div className="flex items-center">
+          <h2 className="font-semibold text-gray-800 dark:text-gray-200 mr-2">Chat Room</h2>
+          <div className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-full flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>Private messaging enabled</span>
+          </div>
+        </div>
+        <div className="text-xs text-gray-500 dark:text-gray-400 hidden md:block">
+          Type @username at the start of your message to send privately
+        </div>
       </div>
       
       {/* Chat messages container */}
