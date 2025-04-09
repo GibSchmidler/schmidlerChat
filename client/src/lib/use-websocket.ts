@@ -6,7 +6,7 @@ type WebSocketMessage<T> = {
 };
 
 export function useWebSocket<T = any>(
-  url: string,
+  url: string | null,
   options: {
     onOpen?: (event: Event) => void;
     onClose?: (event: CloseEvent) => void;
@@ -33,6 +33,12 @@ export function useWebSocket<T = any>(
   } = options;
 
   const connect = useCallback(() => {
+    // Don't try to connect if URL is null
+    if (!url) {
+      setIsConnected(false);
+      return;
+    }
+    
     // Don't reconnect if there's already an active connection
     if (webSocketRef.current?.readyState === WebSocket.OPEN) return;
     
