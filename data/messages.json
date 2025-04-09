@@ -22,5 +22,40 @@
     "recipientId": 3,
     "id": 3,
     "timestamp": "2025-04-09T15:20:48.193Z"
+  },
+  {
+    "content": "Hi! I am Barca!",
+    "userId": 3,
+    "isPrivate": false,
+    "recipientId": null,
+    "id": 4,
+    "timestamp": "2025-04-09T15:33:50.510Z"
+  },
+  {
+    "content": "Hey there everybody!",
+    "userId": 3,
+    "isPrivate": false,
+    "recipientId": null,
+    "recipientUsername": null,
+    "id": 5,
+    "timestamp": "2025-04-09T20:25:11.478Z"
+  },
+  {
+    "content": "Hey there Barca!",
+    "userId": 1,
+    "isPrivate": false,
+    "recipientId": null,
+    "recipientUsername": null,
+    "id": 6,
+    "timestamp": "2025-04-09T20:25:31.515Z"
+  },
+  {
+    "content": "Hi there GIb!",
+    "userId": 3,
+    "isPrivate": true,
+    "recipientId": 1,
+    "recipientUsername": "gjschmidler",
+    "id": 7,
+    "timestamp": "2025-04-09T20:25:59.142Z"
   }
 ]
