@@ -47,7 +47,7 @@ export default function HomePage() {
   
   console.log("Connecting to WebSocket at:", wsUrl);
   
-  const { isConnected, sendMessage } = useWebSocket<WebSocketMessage>(wsUrl, {
+  const { isConnected, sendMessage, connectionError } = useWebSocket<WebSocketMessage>(wsUrl, {
     onMessage: (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -98,17 +98,54 @@ export default function HomePage() {
       setMessages(initialMessages);
     }
   }, [initialMessages]);
+  
+  // Show toast notification when connection error occurs
+  useEffect(() => {
+    if (connectionError) {
+      console.error("WebSocket connection error:", connectionError);
+      toast({
+        title: "Connection Error",
+        description: "Failed to connect to chat server. Please refresh the page.",
+        variant: "destructive",
+      });
+    }
+  }, [connectionError, toast]);
 
   // Send a message
   const handleSendMessage = async (content: string) => {
-    if (!user || !isConnected) return false;
+    if (!user) {
+      console.error("Cannot send message: User not logged in");
+      toast({
+        title: "Error",
+        description: "You must be logged in to send messages",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!isConnected) {
+      console.error("Cannot send message: WebSocket not connected");
+      toast({
+        title: "Connection Error",
+        description: "Not connected to chat server. Please refresh the page.",
+        variant: "destructive",
+      });
+      return false;
+    }
     
     try {
       setIsSending(true);
-      sendMessage({ content });
+      console.log("Sending message:", content);
+      const result = sendMessage({ content });
+      console.log("Message sent successfully:", result);
       return true;
     } catch (error) {
       console.error("Error sending message:", error);
+      toast({
+        title: "Failed to Send",
+        description: "Could not send your message. Please try again.",
+        variant: "destructive",
+      });
       return false;
     } finally {
       setIsSending(false);
@@ -118,6 +155,12 @@ export default function HomePage() {
   return (
     <div className="h-screen flex flex-col">
       <Header />
+      
+      {/* Connection status indicator */}
+      <div className={`text-xs px-3 py-1 flex justify-end items-center gap-1 ${isConnected ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'}`}>
+        <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+        {isConnected ? 'Connected to chat server' : 'Disconnected from chat server'}
+      </div>
       
       <main className="flex-1 flex overflow-hidden">
         <UserSidebar 
