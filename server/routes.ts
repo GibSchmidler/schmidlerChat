@@ -138,6 +138,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+  
+  // Delete a user by username (admin-only endpoint)
+  app.delete("/api/admin/users/:username", async (req, res, next) => {
+    try {
+      const { username } = req.params;
+      
+      if (!username) {
+        return res.status(400).json({ error: "Username is required" });
+      }
+      
+      const success = await storage.deleteUserByUsername(username);
+      
+      if (success) {
+        res.status(200).json({ message: `User "${username}" deleted successfully` });
+      } else {
+        res.status(404).json({ error: `User "${username}" not found` });
+      }
+    } catch (error) {
+      next(error);
+    }
+  });
 
   // Create HTTP server
   const httpServer = createServer(app);

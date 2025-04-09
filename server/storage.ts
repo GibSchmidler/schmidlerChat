@@ -22,6 +22,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserProfile(userId: number, profileData: UpdateProfile): Promise<User | undefined>;
+  deleteUserByUsername(username: string): Promise<boolean>;
   getAllUsers(): Promise<User[]>;
   
   // Message operations
@@ -146,6 +147,22 @@ export class FileStorage implements IStorage {
     this.saveUsers();
     
     return this.users[userIndex];
+  }
+  
+  async deleteUserByUsername(username: string): Promise<boolean> {
+    const initialLength = this.users.length;
+    
+    // Filter out the user with the matching username
+    this.users = this.users.filter(user => user.username !== username);
+    
+    // If a user was removed, save the updated users list
+    if (this.users.length < initialLength) {
+      // Save users to file
+      this.saveUsers();
+      return true;
+    }
+    
+    return false;
   }
   
   async getAllUsers(): Promise<User[]> {
