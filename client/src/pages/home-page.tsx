@@ -43,11 +43,11 @@ export default function HomePage() {
 
   // Setup WebSocket connection only if user is logged in
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const wsUrl = `${protocol}//${window.location.host}/ws`;
+  const wsUrl = user ? `${protocol}//${window.location.host}/ws?userId=${user.id}` : null;
   
   console.log("Connecting to WebSocket at:", wsUrl);
   
-  const { isConnected, sendMessage } = useWebSocket<WebSocketMessage>(user ? wsUrl : null, {
+  const { isConnected, sendMessage } = useWebSocket<WebSocketMessage>(wsUrl, {
     onMessage: (event) => {
       try {
         const data = JSON.parse(event.data);

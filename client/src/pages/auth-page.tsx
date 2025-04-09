@@ -14,14 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
 const loginSchema = z.object({
@@ -92,50 +84,56 @@ export default function AuthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Form {...loginForm}>
-              <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-6">
-                <FormField
-                  control={loginForm.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your username" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+            <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-6">
+              <div className="space-y-1">
+                <label className="font-medium text-sm" htmlFor="login-username">
+                  Username
+                </label>
+                <Input 
+                  id="login-username"
+                  placeholder="Enter your username" 
+                  {...loginForm.register("username")} 
                 />
-                <FormField
-                  control={loginForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Enter your password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                {loginForm.formState.errors.username && (
+                  <p className="text-sm text-red-500">
+                    {loginForm.formState.errors.username.message}
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-1">
+                <label className="font-medium text-sm" htmlFor="login-password">
+                  Password
+                </label>
+                <Input 
+                  id="login-password"
+                  type="password" 
+                  placeholder="Enter your password" 
+                  {...loginForm.register("password")} 
                 />
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={loginMutation.isPending}
-                >
-                  {loginMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
-                    </>
-                  ) : (
-                    "Log In"
-                  )}
-                </Button>
-              </form>
-            </Form>
+                {loginForm.formState.errors.password && (
+                  <p className="text-sm text-red-500">
+                    {loginForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  "Log In"
+                )}
+              </Button>
+            </form>
+            
             <div className="mt-6 text-center">
               <p className="text-gray-600 dark:text-gray-400">
                 Don't have an account?{" "}
@@ -159,80 +157,89 @@ export default function AuthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Form {...registerForm}>
-              <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                <FormField
-                  control={registerForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+            <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+              <div className="space-y-1">
+                <label className="font-medium text-sm" htmlFor="register-name">
+                  Full Name
+                </label>
+                <Input 
+                  id="register-name"
+                  placeholder="John Doe" 
+                  {...registerForm.register("name")} 
                 />
-                <FormField
-                  control={registerForm.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="johndoe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                {registerForm.formState.errors.name && (
+                  <p className="text-sm text-red-500">
+                    {registerForm.formState.errors.name.message}
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-1">
+                <label className="font-medium text-sm" htmlFor="register-username">
+                  Username
+                </label>
+                <Input 
+                  id="register-username"
+                  placeholder="johndoe" 
+                  {...registerForm.register("username")} 
                 />
-                <FormField
-                  control={registerForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Create a password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                {registerForm.formState.errors.username && (
+                  <p className="text-sm text-red-500">
+                    {registerForm.formState.errors.username.message}
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-1">
+                <label className="font-medium text-sm" htmlFor="register-password">
+                  Password
+                </label>
+                <Input 
+                  id="register-password"
+                  type="password" 
+                  placeholder="Create a password" 
+                  {...registerForm.register("password")} 
                 />
-                <FormField
-                  control={registerForm.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="Confirm your password" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                {registerForm.formState.errors.password && (
+                  <p className="text-sm text-red-500">
+                    {registerForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-1">
+                <label className="font-medium text-sm" htmlFor="register-confirm-password">
+                  Confirm Password
+                </label>
+                <Input 
+                  id="register-confirm-password"
+                  type="password" 
+                  placeholder="Confirm your password" 
+                  {...registerForm.register("confirmPassword")} 
                 />
-                <Button 
-                  type="submit" 
-                  className="w-full mt-2" 
-                  disabled={registerMutation.isPending}
-                >
-                  {registerMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Registering...
-                    </>
-                  ) : (
-                    "Register"
-                  )}
-                </Button>
-              </form>
-            </Form>
+                {registerForm.formState.errors.confirmPassword && (
+                  <p className="text-sm text-red-500">
+                    {registerForm.formState.errors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full mt-2" 
+                disabled={registerMutation.isPending}
+              >
+                {registerMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Registering...
+                  </>
+                ) : (
+                  "Register"
+                )}
+              </Button>
+            </form>
+            
             <div className="mt-6 text-center">
               <p className="text-gray-600 dark:text-gray-400">
                 Already have an account?{" "}

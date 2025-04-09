@@ -56,6 +56,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all users
+  app.get("/api/users", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) return res.sendStatus(401);
+      
+      const users = await storage.getAllUsers();
+      const usersWithStatus = users.map(user => ({
+        ...user,
+        status: clients.has(user.id) ? "online" as const : "offline" as const
+      }));
+      
+      res.json(usersWithStatus);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
   
@@ -78,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       id: user.id,
       username: user.username,
       name: user.name,
-      status: clients.has(user.id) ? "online" : "offline"
+      status: clients.has(user.id) ? "online" as const : "offline" as const
     }));
     
     broadcast({
@@ -88,88 +105,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   wss.on("connection", async (ws, req) => {
-    // Get the session ID from the request cookies
-    const sessionCookie = req.headers.cookie?.split(';')
-      .find(c => c.trim().startsWith('connect.sid='));
-
-    if (!sessionCookie) {
-      ws.close(1008, "Unauthorized");
+    // Get the userId from the query parameter
+    const url = new URL(req.url || '', `http://${req.headers.host}`);
+    const userId = parseInt(url.searchParams.get('userId') || '0');
+    
+    if (!userId) {
+      ws.close(1008, "Unauthorized - User ID required");
+      console.log("WebSocket connection rejected: No user ID provided");
       return;
     }
     
-    // Parse user ID from session
-    const sessionId = decodeURIComponent(sessionCookie.split('=')[1].split('.')[0]);
-    const sessions = storage.sessionStore as any;
+    // Get user from storage
+    const user = await storage.getUser(userId);
     
-    sessions.get(sessionId, async (err: Error | null, session: any) => {
-      if (err || !session || !session.passport || !session.passport.user) {
-        ws.close(1008, "Session invalid");
-        return;
-      }
-      
-      const userId = session.passport.user;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        ws.close(1008, "User not found");
-        return;
-      }
-      
-      // Store client connection
-      clients.set(userId, ws);
-      
-      // Broadcast user status update
-      await broadcastUserStatus();
-      
-      // Handle messages
-      ws.on("message", async (messageData) => {
-        try {
-          const data = JSON.parse(messageData.toString());
-          
-          // Validate message content
-          const result = insertMessageSchema.safeParse({
-            content: data.content,
-            userId: userId
-          });
-          
-          if (!result.success) {
-            ws.send(JSON.stringify({ 
-              type: "error", 
-              error: "Invalid message format" 
-            }));
-            return;
-          }
-          
-          // Store the message
-          const message = await storage.createMessage({
-            content: data.content,
-            userId: userId
-          });
-          
-          // Broadcast to all clients
-          broadcast({
-            type: "message",
-            content: message.content,
-            userId: message.userId,
-            username: user.username,
-            name: user.name,
-            timestamp: message.timestamp
-          });
-          
-        } catch (error) {
-          console.error("Error processing message:", error);
+    if (!user) {
+      ws.close(1008, "User not found");
+      console.log(`WebSocket connection rejected: User ID ${userId} not found`);
+      return;
+    }
+    
+    console.log(`WebSocket connection established for user: ${user.username} (${userId})`);
+    
+    // Store client connection
+    clients.set(userId, ws);
+    
+    // Broadcast user status update
+    await broadcastUserStatus();
+    
+    // Handle messages
+    ws.on("message", async (messageData) => {
+      try {
+        const data = JSON.parse(messageData.toString());
+        
+        // Validate message content
+        const result = insertMessageSchema.safeParse({
+          content: data.content,
+          userId: userId
+        });
+        
+        if (!result.success) {
           ws.send(JSON.stringify({ 
             type: "error", 
-            error: "Failed to process message" 
+            error: "Invalid message format" 
           }));
+          return;
         }
-      });
-      
-      // Handle disconnection
-      ws.on("close", async () => {
-        clients.delete(userId);
-        await broadcastUserStatus();
-      });
+        
+        // Store the message
+        const message = await storage.createMessage({
+          content: data.content,
+          userId: userId
+        });
+        
+        // Broadcast to all clients
+        broadcast({
+          type: "message",
+          content: message.content,
+          userId: message.userId,
+          username: user.username,
+          name: user.name,
+          timestamp: message.timestamp
+        });
+        
+      } catch (error) {
+        console.error("Error processing message:", error);
+        ws.send(JSON.stringify({ 
+          type: "error", 
+          error: "Failed to process message" 
+        }));
+      }
+    });
+    
+    // Handle disconnection
+    ws.on("close", async () => {
+      clients.delete(userId);
+      await broadcastUserStatus();
     });
   });
 
