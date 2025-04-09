@@ -1,12 +1,8 @@
 import { drizzle } from "drizzle-orm/neon-serverless";
-import { neon, neonConfig } from "@neondatabase/serverless";
-import { users, messages } from "@shared/schema";
-
-// Configure neon
-neonConfig.fetchConnectionCache = true;
+import { neon } from "@neondatabase/serverless";
 
 // Create database connection
-const sql = neon(process.env.DATABASE_URL!);
+export const sql = neon(process.env.DATABASE_URL!);
 export const db = drizzle(sql);
 
 // Create DB schema

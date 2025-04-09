@@ -4,7 +4,6 @@ import { eq, desc } from "drizzle-orm";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
-// Create memory store for sessions
 const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
@@ -19,12 +18,12 @@ export interface IStorage {
   getMessages(limit?: number): Promise<Message[]>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
 // PostgreSQL database storage implementation
 export class DatabaseStorage implements IStorage {
-  public sessionStore: session.SessionStore;
+  public sessionStore: session.Store;
   
   constructor() {
     this.sessionStore = new MemoryStore({
@@ -61,7 +60,7 @@ export class DatabaseStorage implements IStorage {
     
     if (limit) {
       // Fetch the most recent messages if a limit is provided
-      query = query.limit(limit);
+      return await query.limit(limit);
     }
     
     return await query;
