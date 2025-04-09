@@ -93,5 +93,32 @@
     "recipientUsername": "chuck",
     "id": 11,
     "timestamp": "2025-04-09T20:34:21.673Z"
+  },
+  {
+    "content": "Testing!",
+    "userId": 3,
+    "isPrivate": false,
+    "recipientId": null,
+    "recipientUsername": null,
+    "id": 12,
+    "timestamp": "2025-04-09T20:36:36.086Z"
+  },
+  {
+    "content": "The test worked Barca!!",
+    "userId": 1,
+    "isPrivate": false,
+    "recipientId": null,
+    "recipientUsername": null,
+    "id": 13,
+    "timestamp": "2025-04-09T20:36:53.255Z"
+  },
+  {
+    "content": "Sounds Great!",
+    "userId": 3,
+    "isPrivate": false,
+    "recipientId": null,
+    "recipientUsername": null,
+    "id": 14,
+    "timestamp": "2025-04-09T20:37:05.571Z"
   }
 ]
