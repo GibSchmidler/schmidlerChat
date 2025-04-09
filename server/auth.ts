@@ -111,13 +111,18 @@ export function setupAuth(app: Express) {
       if (!req.isAuthenticated()) return res.sendStatus(401);
       
       const users = await storage.getAllUsers();
-      // Remove passwords from the response
-      const usersWithoutPasswords = users.map(user => {
+      
+      // Remove passwords and add online status
+      // Since we don't have WebSockets anymore, all users are "offline" except the current user
+      const usersWithStatusAndNoPasswords = users.map(user => {
         const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
+        return {
+          ...userWithoutPassword,
+          status: user.id === req.user!.id ? "online" : "offline"
+        };
       });
       
-      res.json(usersWithoutPasswords);
+      res.json(usersWithStatusAndNoPasswords);
     } catch (error) {
       next(error);
     }

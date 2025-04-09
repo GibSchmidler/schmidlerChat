@@ -78,26 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all users with online status
-  app.get("/api/users", async (req, res, next) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.sendStatus(401);
-      }
-      
-      const users = await storage.getAllUsers();
-      
-      // Since we don't have WebSockets anymore, all users are "offline" except the current user
-      const usersWithStatus = users.map(user => ({
-        ...user,
-        status: user.id === req.user!.id ? "online" : "offline"
-      }));
-      
-      res.json(usersWithStatus);
-    } catch (error) {
-      next(error);
-    }
-  });
+  // Note: /api/users endpoint is already defined in auth.ts
 
   // Create HTTP server
   const httpServer = createServer(app);
