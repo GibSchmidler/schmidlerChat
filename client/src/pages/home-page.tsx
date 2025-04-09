@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/layout/header";
 import ChatArea from "@/components/chat/chat-area";
 import MessageComposer from "@/components/chat/message-composer";
@@ -84,6 +85,29 @@ export default function HomePage() {
 
   // Extract online user IDs from the online users response
   const onlineUserIds = onlineUsers.map(user => user.id);
+
+  // Update online status when visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (user) {
+        apiRequest("POST", "/api/users/status", {
+          status: document.hidden ? "offline" : "online"
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    // Set initial status
+    handleVisibilityChange();
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      // Set offline when component unmounts
+      if (user) {
+        apiRequest("POST", "/api/users/status", { status: "offline" });
+      }
+    };
+  }, [user]);
 
   return (
     <div className="h-screen flex flex-col">

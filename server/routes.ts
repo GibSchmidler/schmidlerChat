@@ -6,6 +6,10 @@ import { insertMessageSchema, updateProfileSchema } from "@shared/schema";
 import { z } from "zod";
 import { upload, handleAvatarUpload, serveStaticUploads } from "./upload";
 
+// Track user statuses in memory.  This is a simplified in-memory solution.  For a production
+// environment, a persistent storage mechanism (database) would be necessary.
+const userStatuses = new Map<number, 'online' | 'offline'>();
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
   setupAuth(app);
@@ -16,13 +20,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.isAuthenticated()) {
         return res.sendStatus(401);
       }
-      
+
       // Parse limit parameter, default to 50 if not provided
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      
+
       // Get messages from storage, filtered for current user
       const messages = await storage.getMessages(limit, req.user!.id);
-      
+
       // Enrich messages with user data
       const enrichedMessages = await Promise.all(
         messages.map(async (message) => {
@@ -36,7 +40,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         })
       );
-      
+
       res.json(enrichedMessages);
     } catch (error) {
       next(error);
@@ -55,32 +59,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let recipientId = null;
       let recipientUsername = null;
       let content = req.body.content;
-      
+
       // Make username comparison case-insensitive
       // Check for @username pattern at the beginning of the message
       const atMentionRegex = /^@(\w+)\s(.+)$/;
       const mentionMatch = content.match(atMentionRegex);
-      
+
       if (mentionMatch) {
         const mentionedUsername = mentionMatch[1];
         const actualMessage = mentionMatch[2];
-        
+
         // Case-insensitive username lookup
         const mentionedUser = await storage.getUserByUsername(
           mentionedUsername.toLowerCase()
         ) || await storage.getUserByUsername(mentionedUsername);
-        
+
         if (mentionedUser) {
           console.log(`Private message detected to ${mentionedUser.username}`);
           isPrivate = true;
           recipientId = mentionedUser.id;
           recipientUsername = mentionedUser.username;
-          
+
           // Remove the @username prefix from the content
           content = actualMessage;
         }
       }
-      
+
       // Validate request body
       const result = insertMessageSchema.safeParse({
         content: content,
@@ -88,14 +92,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isPrivate: isPrivate,
         recipientId: recipientId
       });
-      
+
       if (!result.success) {
         return res.status(400).json({
           error: "Invalid message format",
           details: result.error.errors
         });
       }
-      
+
       // Create message in storage
       const message = await storage.createMessage({
         content: content,
@@ -104,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recipientId: recipientId,
         recipientUsername: recipientUsername
       });
-      
+
       // Return message with user info
       const user = req.user!;
       res.status(201).json({
@@ -120,31 +124,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Note: /api/users endpoint is already defined in auth.ts
-  
+
   // Update user profile
   app.patch("/api/user/profile", async (req, res, next) => {
     try {
       if (!req.isAuthenticated()) {
         return res.sendStatus(401);
       }
-      
+
       // Validate request body
       const result = updateProfileSchema.safeParse(req.body);
-      
+
       if (!result.success) {
         return res.status(400).json({
           error: "Invalid profile data",
           details: result.error.errors
         });
       }
-      
+
       // Update user profile
       const updatedUser = await storage.updateUserProfile(req.user!.id, req.body);
-      
+
       if (!updatedUser) {
         return res.status(404).json({ error: "User not found" });
       }
-      
+
       // Update session
       req.login(updatedUser, (err) => {
         if (err) return next(err);
@@ -154,38 +158,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
-  
+
   // Handle avatar upload
   app.post("/api/user/avatar", upload.single("avatar"), handleAvatarUpload);
-  
+
   // Serve static uploads
   app.get("/uploads/:filename", serveStaticUploads);
-  
-  // Get all users (for the sidebar)
+
+  // Get all users (for the sidebar)  - Modified to include status
   app.get("/api/users", async (req, res, next) => {
     try {
       if (!req.isAuthenticated()) {
         return res.sendStatus(401);
       }
-      
+
       const users = await storage.getAllUsers();
-      res.json(users);
+      const usersWithStatus = users.map(user => ({
+        ...user,
+        status: userStatuses.get(user.id) || 'offline'
+      }));
+      res.json(usersWithStatus);
     } catch (error) {
       next(error);
     }
   });
-  
+
+
+  // Update user status
+  app.post("/api/users/status", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.sendStatus(401);
+      }
+      const { status } = req.body;
+      const userId = req.user!.id;
+
+      if (status !== 'online' && status !== 'offline') {
+        return res.status(400).json({ error: 'Invalid status' });
+      }
+
+      userStatuses.set(userId, status);
+      res.json({ status: 'success' });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+
   // Delete a user by username (admin-only endpoint)
   app.delete("/api/admin/users/:username", async (req, res, next) => {
     try {
       const { username } = req.params;
-      
+
       if (!username) {
         return res.status(400).json({ error: "Username is required" });
       }
-      
+
       const success = await storage.deleteUserByUsername(username);
-      
+
       if (success) {
         res.status(200).json({ message: `User "${username}" deleted successfully` });
       } else {
