@@ -38,6 +38,7 @@ const ProfileFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   bio: z.string().optional(),
   avatarColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color"),
+  avatarUrl: z.string().url("Must be a valid URL").optional().nullable(),
   theme: z.enum(["light", "dark"]),
 });
 
@@ -51,6 +52,7 @@ export default function ProfilePage() {
       name: "",
       bio: "",
       avatarColor: "#6366f1",
+      avatarUrl: "",
       theme: "light",
     },
   });
@@ -65,6 +67,7 @@ export default function ProfilePage() {
         name: user.name,
         bio: user.bio || "",
         avatarColor: user.avatarColor || "#6366f1",
+        avatarUrl: user.avatarUrl || "",
         theme: themeValue,
       });
     }
@@ -132,6 +135,27 @@ export default function ProfilePage() {
 
               <FormField
                 control={form.control}
+                name="avatarUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Avatar Image URL</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://example.com/your-avatar.jpg"
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter a URL for your profile picture (optional)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="avatarColor"
                 render={({ field }) => (
                   <FormItem>
@@ -150,7 +174,7 @@ export default function ProfilePage() {
                       </FormControl>
                     </div>
                     <FormDescription>
-                      Choose a color for your avatar
+                      Choose a color for your avatar if no image URL is provided
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

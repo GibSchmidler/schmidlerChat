@@ -10,5 +10,11 @@
     "userId": 1,
     "id": 2,
     "timestamp": "2025-04-09T13:37:47.849Z"
+  },
+  {
+    "content": "Hello!",
+    "userId": 2,
+    "id": 3,
+    "timestamp": "2025-04-09T13:42:05.720Z"
   }
 ]

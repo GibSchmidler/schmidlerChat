@@ -7,6 +7,8 @@ import { User, Message } from "@shared/schema";
 interface ChatMessage extends Message {
   username: string;
   name: string;
+  avatarUrl?: string | null;
+  avatarColor?: string | null;
 }
 
 interface ChatAreaProps {
@@ -60,11 +62,36 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
       
       // Get random background color based on user id for avatar
       const colors = ['bg-primary', 'bg-secondary', 'bg-accent'];
-      const bgColor = colors[message.userId % colors.length];
+      const defaultBgColor = message.avatarColor || colors[message.userId % colors.length];
       
       // Format timestamp
       const messageTime = new Date(message.timestamp);
       const formattedTime = format(messageTime, 'h:mm a');
+      
+      // Avatar component that works with both image and fallback
+      const AvatarComponent = () => message.avatarUrl ? (
+        <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
+          <img 
+            src={message.avatarUrl} 
+            alt={message.name} 
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to initials on image error
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.parentElement!.classList.add('text-white', 'flex', 'items-center', 'justify-center');
+              e.currentTarget.parentElement!.style.backgroundColor = defaultBgColor;
+              e.currentTarget.parentElement!.innerHTML = `<span>${initials}</span>`;
+            }}
+          />
+        </div>
+      ) : (
+        <div 
+          className="w-8 h-8 rounded-full text-white flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: defaultBgColor }}
+        >
+          <span>{initials}</span>
+        </div>
+      );
       
       if (isSentByCurrentUser) {
         return (
@@ -79,17 +106,13 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
                 <p>{message.content}</p>
               </div>
             </div>
-            <div className={`w-8 h-8 rounded-full ${bgColor} text-white flex items-center justify-center flex-shrink-0`}>
-              <span>{initials}</span>
-            </div>
+            <AvatarComponent />
           </div>
         );
       } else {
         return (
           <div key={index} className="flex items-start space-x-2 mb-4">
-            <div className={`w-8 h-8 rounded-full ${bgColor} text-white flex items-center justify-center flex-shrink-0`}>
-              <span>{initials}</span>
-            </div>
+            <AvatarComponent />
             <div>
               <div className="flex items-end">
                 <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">

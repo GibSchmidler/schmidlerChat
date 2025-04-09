@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   bio: text("bio").default(""),
   avatarColor: text("avatar_color").default("#6366f1"), // Default indigo color
+  avatarUrl: text("avatar_url"),
   theme: text("theme").default("light"),
 });
 
@@ -39,6 +40,7 @@ export const updateProfileSchema = z.object({
   name: z.string().min(1, "Name is required"),
   bio: z.string().optional(),
   avatarColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color").optional(),
+  avatarUrl: z.string().url("Must be a valid URL").optional().nullable(),
   theme: z.enum(["light", "dark"]).optional(),
 });
 

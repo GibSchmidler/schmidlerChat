@@ -7,5 +7,14 @@
     "bio": "",
     "avatarColor": "#ac3939",
     "theme": "dark"
+  },
+  {
+    "name": "Barca Schmidler",
+    "username": "Barca",
+    "password": "21dd6dee68e3ce81c6897c4226f0675029474b3ae6539777653eea1f1259b7488774d3a73a26f02d0a731623cee8bc5cd7ec01bb2dc2ed4cffd8e80fca550cdb.c0692f30cfcbc95314e32c44bcf874aa",
+    "id": 2,
+    "bio": "",
+    "avatarColor": "#6366f1",
+    "theme": "light"
   }
 ]

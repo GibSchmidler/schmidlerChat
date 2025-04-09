@@ -30,6 +30,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...message,
             username: user?.username || "unknown",
             name: user?.name || "Unknown User",
+            avatarUrl: user?.avatarUrl,
+            avatarColor: user?.avatarColor,
           };
         })
       );
@@ -71,7 +73,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({
         ...message,
         username: user.username,
-        name: user.name
+        name: user.name,
+        avatarUrl: user.avatarUrl,
+        avatarColor: user.avatarColor
       });
     } catch (error) {
       next(error);

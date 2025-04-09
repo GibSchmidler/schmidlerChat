@@ -45,12 +45,29 @@ export default function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 focus:outline-none p-1 h-auto">
-                <div 
-                  className="w-8 h-8 rounded-full text-white flex items-center justify-center"
-                  style={{ backgroundColor: user.avatarColor || '#6366f1' }}
-                >
-                  <span>{initials}</span>
-                </div>
+                {user.avatarUrl ? (
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                    <img 
+                      src={user.avatarUrl} 
+                      alt={user.name} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to initials on image error
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.parentElement!.classList.add('text-white', 'flex', 'items-center', 'justify-center');
+                        e.currentTarget.parentElement!.style.backgroundColor = user.avatarColor || '#6366f1';
+                        e.currentTarget.parentElement!.innerHTML = `<span>${initials}</span>`;
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div 
+                    className="w-8 h-8 rounded-full text-white flex items-center justify-center"
+                    style={{ backgroundColor: user.avatarColor || '#6366f1' }}
+                  >
+                    <span>{initials}</span>
+                  </div>
+                )}
                 <span className="font-medium text-gray-700 dark:text-gray-200">
                   {user.name}
                 </span>

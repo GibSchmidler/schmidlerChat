@@ -119,6 +119,7 @@ export class FileStorage implements IStorage {
       id: this.nextUserId++,
       bio: "",
       avatarColor: "#6366f1", // Default indigo color
+      avatarUrl: null,
       theme: "light"
     };
     this.users.push(newUser);
