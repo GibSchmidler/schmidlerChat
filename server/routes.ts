@@ -175,11 +175,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = await storage.getAllUsers();
       const usersWithStatus = users.map(user => {
         const { password, ...userWithoutPassword } = user;
+        const status = userStatuses.get(user.id);
         return {
           ...userWithoutPassword,
-          status: userStatuses.get(user.id) || 'offline'
+          status: status === 'online' ? 'online' : 'offline'
         };
       });
+
+      // Make sure current user is shown as online
+      if (req.user) {
+        userStatuses.set(req.user.id, 'online');
+      }
+      
       res.json(usersWithStatus);
     } catch (error) {
       next(error);

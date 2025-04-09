@@ -106,23 +106,7 @@ export function setupAuth(app: Express) {
     res.json(userWithoutPassword);
   });
 
-  app.get("/api/users", async (req, res, next) => {
-    try {
-      if (!req.isAuthenticated()) return res.sendStatus(401);
-      
-      const users = await storage.getAllUsers();
-      
-      // Remove passwords from response
-      const usersWithoutPasswords = users.map(user => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      });
-      
-      res.json(usersWithoutPasswords);
-    } catch (error) {
-      next(error);
-    }
-  });
+  // Removed duplicate /api/users endpoint as it's now handled in routes.ts
   
   // Update user profile
   app.patch("/api/user/profile", async (req, res, next) => {
