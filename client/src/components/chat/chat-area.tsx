@@ -155,7 +155,7 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
       <div className="bg-white dark:bg-gray-800 p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <div className="flex items-center">
           <h2 className="font-semibold text-gray-800 dark:text-gray-200 mr-2">
-            {message?.isPrivate ? `Private Chat with @${message.recipientUsername}` : 'Chat Room'}
+            Chat Room
           </h2>
           <div className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-full flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
