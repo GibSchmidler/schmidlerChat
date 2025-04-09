@@ -9,7 +9,7 @@ import UserSidebar from "@/components/chat/user-sidebar";
 import { Message } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
+// import { apiRequest } from "@/lib/queryClient";
 
 interface ChatMessage extends Message {
   username: string;
