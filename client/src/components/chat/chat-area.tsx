@@ -109,7 +109,7 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    <span>Private message to @{message.recipientUsername || "unknown"}</span>
+                    <span>Private message</span>
                   </div>
                 )}
                 <p>{message.content}</p>
@@ -154,7 +154,9 @@ export default function ChatArea({ messages, currentUser, isLoading = false }: C
       {/* Chat header - fixed at top */}
       <div className="bg-white dark:bg-gray-800 p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <div className="flex items-center">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-200 mr-2">Chat Room</h2>
+          <h2 className="font-semibold text-gray-800 dark:text-gray-200 mr-2">
+            {message?.isPrivate ? `Private Chat with @${message.recipientUsername}` : 'Chat Room'}
+          </h2>
           <div className="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-full flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
