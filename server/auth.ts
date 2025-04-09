@@ -118,7 +118,7 @@ export function setupAuth(app: Express) {
         return userWithoutPassword;
       });
       
-      res.json(usersWithStatusAndNoPasswords);
+      res.json(usersWithoutPasswords);
     } catch (error) {
       next(error);
     }
