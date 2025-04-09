@@ -20,6 +20,7 @@ export const messages = pgTable("messages", {
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   isPrivate: boolean("is_private").default(false).notNull(),
   recipientId: integer("recipient_id"),
+  recipientUsername: text("recipient_username"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -31,11 +32,13 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertMessageSchema = createInsertSchema(messages, {
   isPrivate: () => z.boolean().optional().default(false),
   recipientId: () => z.number().optional().nullable(),
+  recipientUsername: () => z.string().optional().nullable(),
 }).pick({
   content: true,
   userId: true,
   isPrivate: true,
   recipientId: true,
+  recipientUsername: true,
 });
 
 export const loginSchema = z.object({

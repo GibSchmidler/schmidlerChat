@@ -183,7 +183,8 @@ export class FileStorage implements IStorage {
       id: this.nextMessageId++,
       timestamp: new Date(),
       isPrivate: insertMessage.isPrivate || false,
-      recipientId: insertMessage.recipientId || null
+      recipientId: insertMessage.recipientId || null,
+      recipientUsername: insertMessage.recipientUsername || null
     };
     this.messages.push(newMessage);
     

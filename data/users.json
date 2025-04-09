@@ -18,5 +18,15 @@
     "avatarColor": "#6366f1",
     "avatarUrl": null,
     "theme": "light"
+  },
+  {
+    "name": "Chuck Schmidler",
+    "username": "chuck",
+    "password": "39739c77fcbf33c6520275ec94595e5ec95494709c6a0490f99a519fd9554aaa15c4377284c5a722009f063861cf721ac07bcf147ffeecb92f6b541556e6a47a.a075d23d8911850100554064b938ef48",
+    "id": 4,
+    "bio": "",
+    "avatarColor": "#6366f1",
+    "avatarUrl": null,
+    "theme": "light"
   }
 ]

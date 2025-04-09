@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Hello Everybody! This is the Schmidler chat room!",
+    "userId": 1,
+    "isPrivate": false,
+    "recipientId": null,
+    "id": 1,
+    "timestamp": "2025-04-09T15:19:08.024Z"
+  },
+  {
+    "content": "@barca Only barca should be able to see this!",
+    "userId": 1,
+    "isPrivate": true,
+    "recipientId": 3,
+    "id": 2,
+    "timestamp": "2025-04-09T15:19:30.695Z"
+  },
+  {
+    "content": "@barca Hello! how are you! I am an animal too!",
+    "userId": 4,
+    "isPrivate": true,
+    "recipientId": 3,
+    "id": 3,
+    "timestamp": "2025-04-09T15:20:48.193Z"
+  }
+]
