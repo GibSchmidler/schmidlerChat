@@ -166,13 +166,13 @@ export class FileStorage implements IStorage {
   }
   
   async getMessages(limit?: number): Promise<Message[]> {
-    // Sort messages by timestamp in descending order (newest first)
+    // Sort messages by timestamp in ascending order (oldest first)
     const sortedMessages = [...this.messages].sort(
-      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+      (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
     );
     
     if (limit) {
-      return sortedMessages.slice(0, limit);
+      return sortedMessages.slice(-limit); // Get the most recent messages if limit is specified
     }
     
     return sortedMessages;

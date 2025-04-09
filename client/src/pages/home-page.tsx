@@ -91,12 +91,6 @@ export default function HomePage() {
     <div className="h-screen flex flex-col">
       <Header />
       
-      {/* Connection status indicator */}
-      <div className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-xs px-3 py-1 flex justify-end items-center gap-1">
-        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-        Connected to chat server
-      </div>
-      
       <main className="flex-1 flex overflow-hidden">
         <UserSidebar 
           onlineUsers={onlineUserIds} 
